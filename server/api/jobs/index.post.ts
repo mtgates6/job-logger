@@ -9,7 +9,9 @@ export default defineEventHandler( async (event) => {
         status: body.status ?? "Applied",
         dateApplied: body.dateApplied,
         url: body.url ?? null,
-        description: body.descritpion ?? null,
+        location: body.location ?? null,
+        salary: body.salary ?? null,
+        description: body.description ?? null,
         notes: body.notes ?? null,
     }).returning();
     

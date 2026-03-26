@@ -9,6 +9,8 @@ export const jobs = sqliteTable("jobs", {
   status: text("status").notNull().default("Applied"),
   dateApplied: text("date_applied").notNull(),
   url: text("url"),
+  location:text("location"),
+  salary: text("salary"),
   description: text("description"),
   notes: text("notes"),
 });
