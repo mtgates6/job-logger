@@ -1,3 +1,4 @@
+import { ref, computed } from "vue";
 <script setup>
 // useFetch is Nuxt's built-in composable for making API calls
 // it automatically fetches on page load and is SSR-friendly
@@ -8,7 +9,7 @@ const form = ref({
     status: "",
     dateApplied: "",
     url: "",
-    lcoation: "",
+    location: "",
     salary: "",
     description: "",
     notes: "",
@@ -37,6 +38,26 @@ async function addJob() {
     };
     showForm.value =false;
 }
+
+async function deleteJob(id){
+    await $fetch(`/api/jobs/${id}`, {
+        method: "DELETE",
+    });
+    await refresh();
+}
+
+const filterStatus = ref("");
+const filterLocation = ref("");
+const filteredJobs = computed(() => {
+    return (jobs.value ?? []).filter((job) => {
+        const matchesStatus = filterStatus.value ? job.status === filterStatus.value : true;
+        const matchesLocation = filterLocation.value ? job.location === filterLocation.value : true;
+        return matchesStatus && matchesLocation;
+    });
+});
+
+
+
 </script>
 
 <template>
@@ -45,6 +66,28 @@ async function addJob() {
     <button @click="showForm = !showForm">
         {{  showForm? "Cancel" : "Add Job" }}
     </button>
+    <div>
+        <select v-model="filterStatus">
+            <option value="">All</option>
+            <option>Applied</option>
+            <option>Phone Screen</option>
+            <option>Assessment</option>
+            <option>Interview</option>
+            <option>Technical Interview</option>
+            <option>Offered</option>
+            <option>Rejection</option>
+            <option>Ghosted</option>
+        </select>
+        <select v-model="filterLocation">
+            <option value="">All</option>
+            <option>Remote</option>
+            <option>On-site</option>
+            <option>Hybrid</option>
+        </select>
+        <button @click="filterStatus=''; filterLocation=''">
+            Clear
+        </button>
+    </div>
     <div v-if="showForm">
         <h2>New Application</h2>
 
@@ -69,8 +112,10 @@ async function addJob() {
         <button @click="addJob">Add Job</button>
     </div>
     <!-- loop over each job and display its details -->
-    <div v-for="job in jobs" :key="job.id">
-      <p>{{ job.company }} — {{ job.role }} | {{ job.status }} | {{ job.dateApplied }}</p>
+    <div v-for="job in filteredJobs" :key="job.id">
+      <p>{{ job.company }} — {{ job.role }} | {{ job.status }} | {{ job.dateApplied }}
+          <button @click="deleteJob(job.id)">Delete</button>
+      </p>
     </div>
   </div>
 </template>
