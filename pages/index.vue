@@ -19,16 +19,33 @@ const emptyJob = {
   notes: "",
 };
 
-// today's date as YYYY-MM-DD string
-const today = new Date().toISOString().split("T")[0];
+// use local date parts to avoid UTC rollback
+const now = new Date();
+const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 const showAddModal = ref(false);
 const addForm = ref({...emptyJob});
+function formatDate(date) {
+  if (!date) return "";
+
+  // if it's already a YYYY-MM-DD string, return as-is
+  if (typeof date === "string" && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return date;
+  }
+
+console.log("raw:", date);
+  const d = new Date(date);
+  console.log("local day:", d.getDate());
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+    
 async function addJob() {
-    const formatted = addForm.value.dateApplied ? new Date(addForm.value.dateApplied).toISOString().split("T")[0] : "";
 
     await $fetch("/api/jobs",{
         method: "POST",
-        body: { ...addForm.value, dateApplied: formatted },
+        body: { ...addForm.value, dateApplied: formatDate(addForm.value.dateApplied) },
     });
     
     await refresh();
@@ -38,11 +55,12 @@ async function addJob() {
 
 const editingJob = ref(null);
 function openEdit(job) {
-    editingJob.value= {...job};
+    editingJob.value= {...job
+    };
 }
 
 async function saveEdit(){
-    await updateJob(editingJob.value.id, editingJob.value);
+    await updateJob(editingJob.value.id, { ...editingJob.value, dateApplied: formatDate(editingJob.value.dateApplied) });
     await refresh();
     editingJob.value = null;
 }
@@ -97,7 +115,11 @@ const last7Days = computed(() => {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
-    return d.toISOString().split("T")[0];
+    // use local date parts instead of toISOString() to avoid UTC rollback
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   });
 });
 
@@ -109,7 +131,7 @@ const weekStreak = computed(() => {
     // a day is "complete" if they hit the goal
     complete: (jobs.value ?? []).filter((job) => job.dateApplied === date).length >= dailyGoal,
     // short label like "Mon", "Tue" etc.
-    label: new Date(date).toLocaleDateString("en-US", { weekday: "short" }),
+    label: new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" }),
   }));
 });
 

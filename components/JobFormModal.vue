@@ -97,7 +97,7 @@ function update(field, value) {
       <!-- date picker -->
       <div>
         <VueDatePicker
-          :model-value="modelValue.dateApplied"
+          :model-value="modelValue.dateApplied ? new Date(`${modelValue.dateApplied}T12:00:00`) : null"
           @update:model-value="update('dateApplied', $event)"
           dark
           :enable-time-picker="false"
