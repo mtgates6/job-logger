@@ -12,7 +12,7 @@ export default defineEventHandler( async (event) => {
         url: body.url ?? null,
         location: body.location ?? null,
         salary: body.salary ?? null,
-        description: body.descritpion ?? null,
+        description: body.description ?? null,
         notes: body.notes ?? null,
     })
     .where(eq(jobs.id, id))
