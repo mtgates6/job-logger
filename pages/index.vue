@@ -1,5 +1,7 @@
-import { ref, computed } from "vue";
 <script setup>
+import { ref, computed } from "vue";
+import { VueDatePicker } from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css'; // Import the CSS in the component
 // useFetch is Nuxt's built-in composable for making API calls
 // it automatically fetches on page load and is SSR-friendly
 const { data: jobs, refresh } = await useFetch("/api/jobs");
@@ -103,7 +105,7 @@ const filteredJobs = computed(() => {
             <option>Rejection</option>
             <option>Ghosted</option>
         </select>
-        <input v-model="form.dateApplied" placeholder="Date Applied"/>
+        <VueDatePicker style="display: inline-block; width: 80px" v-model="form.dateApplied" />
         <input v-model="form.url" placeholder="URL"/>
         <input v-model="form.location" placeholder="Location"/>
         <input v-model="form.salary" placeholder="Salary"/>
