@@ -2,9 +2,11 @@
 import { ref, computed } from "vue";
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'; // Import the CSS in the component
+
 // useFetch is Nuxt's built-in composable for making API calls
 // it automatically fetches on page load and is SSR-friendly
 const { data: jobs, refresh } = await useFetch("/api/jobs");
+
 const emptyJob = {
   company: "",
   role: "",
@@ -264,7 +266,7 @@ const currentStreak = computed(() => {
                     <p class="font-semibold gap-40">{{ job.company }} — {{ job.role }} — {{ job.location }} — {{ job.salary }}</p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <select :value="job.status" @change="updateJob(job.id, { ...job, status: $event.target.value})"  class="text-xs font-medium px-3 py-1 rounded-full cursor-pointer outline-none"
+                    <select v-model="job.status" @change="updateJob(job.id, { ...job, status: $event.target.value})"  class="text-xs font-medium px-3 py-1 rounded-full cursor-pointer outline-none"
                         :class="{
                             'bg-blue-900 text-blue-300': job.status === 'Applied',
                             'bg-purple-900 text-purple-300': job.status === 'Phone Screen',
