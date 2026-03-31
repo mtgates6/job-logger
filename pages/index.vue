@@ -17,6 +17,8 @@ const emptyJob = {
   notes: "",
 };
 
+// today's date as YYYY-MM-DD string
+const today = new Date().toISOString().split("T")[0];
 const showAddModal = ref(false);
 const addForm = ref({...emptyJob});
 async function addJob() {
@@ -76,6 +78,52 @@ const filteredJobs = computed(() => {
     });
 });
 
+// count how many jobs were applied today
+const todayCount = computed(() => {
+  return (jobs.value ?? []).filter((job) => job.dateApplied === today).length;
+});
+// goal is 5 applications per day
+const dailyGoal = 5;
+
+// percentage for the progress bar — cap at 100
+const todayProgress = computed(() => {
+  return Math.min((todayCount.value / dailyGoal) * 100, 100);
+});
+
+// build the last 7 days as YYYY-MM-DD strings
+const last7Days = computed(() => {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d.toISOString().split("T")[0];
+  });
+});
+
+// for each of the last 7 days, count how many jobs were applied
+const weekStreak = computed(() => {
+  return last7Days.value.map((date) => ({
+    date,
+    count: (jobs.value ?? []).filter((job) => job.dateApplied === date).length,
+    // a day is "complete" if they hit the goal
+    complete: (jobs.value ?? []).filter((job) => job.dateApplied === date).length >= dailyGoal,
+    // short label like "Mon", "Tue" etc.
+    label: new Date(date).toLocaleDateString("en-US", { weekday: "short" }),
+  }));
+});
+
+// streak = how many consecutive days ending today hit the goal
+const currentStreak = computed(() => {
+  let streak = 0;
+  // iterate backwards from today
+  for (let i = weekStreak.value.length - 1; i >= 0; i--) {
+    if (weekStreak.value[i].complete) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
+});
 
 </script>
 
@@ -99,7 +147,59 @@ const filteredJobs = computed(() => {
         v-model="editingJob"
         @submit="saveEdit"
         @close="editingJob = null"
-        />
+    />
+        <!-- daily goal + streak tracker -->
+    <div class="bg-gray-900 rounded-xl px-6 py-5 mb-6">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+            <p class="text-sm font-medium text-gray-300">
+                Today's Progress
+                <span class="text-white font-bold ml-1">{{ todayCount }} / {{ dailyGoal }}</span>
+            </p>
+            <p class="text-xs text-gray-500 mt-0.5">
+                {{ todayCount >= dailyGoal ? '🎉 Goal reached!' : `${dailyGoal - todayCount} more to go` }}
+            </p>
+            </div>
+            <div class="text-right">
+            <p class="text-sm font-medium text-gray-300">
+                🔥 Streak
+                <span class="text-white font-bold ml-1">{{ currentStreak }} day{{ currentStreak !== 1 ? 's' : '' }}</span>
+            </p>
+            </div>
+        </div>
+
+        <!-- progress bar -->
+        <div class="w-full bg-gray-800 rounded-full h-2 mb-4">
+            <div
+            class="h-2 rounded-full transition-all duration-500"
+            :class="todayCount >= dailyGoal ? 'bg-green-500' : 'bg-blue-500'"
+            :style="{ width: todayProgress + '%' }"
+            />
+        </div>
+
+        <!-- 7 day streak row -->
+        <div class="flex justify-between gap-2">
+            <div
+            v-for="day in weekStreak"
+            :key="day.date"
+            class="flex-1 flex flex-col items-center gap-1"
+            >
+            <!-- dot — green if goal met, blue if partial, gray if nothing -->
+            <div
+                class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium"
+                :class="{
+                'bg-green-500 text-white': day.complete,
+                'bg-blue-900 text-blue-300': !day.complete && day.count > 0,
+                'bg-gray-800 text-gray-600': day.count === 0,
+                }"
+            >
+                {{ day.count }}
+            </div>
+            <!-- day label -->
+            <p class="text-xs text-gray-500">{{ day.label }}</p>
+            </div>
+        </div>
+        </div>
     <div class="flex gap-4 mb-6 justify-start">
         <select v-model="filterStatus" class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm outline-none">
             <option value="">All</option>
