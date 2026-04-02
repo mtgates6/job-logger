@@ -135,17 +135,23 @@ const weekStreak = computed(() => {
   }));
 });
 
-// streak = how many consecutive days ending today hit the goal
 const currentStreak = computed(() => {
   let streak = 0;
-  // iterate backwards from today
-  for (let i = weekStreak.value.length - 1; i >= 0; i--) {
+  // iterate backwards from yesterday, not today
+  // today is still in progress so we don't count it against the streak
+  for (let i = weekStreak.value.length - 2; i >= 0; i--) {
     if (weekStreak.value[i].complete) {
       streak++;
     } else {
       break;
     }
   }
+
+  // if today's goal is hit, add it to the streak too
+  if (todayCount.value >= dailyGoal) {
+    streak++;
+  }
+
   return streak;
 });
 
@@ -245,37 +251,6 @@ const currentStreak = computed(() => {
         <button @click="filterStatus=''; filterLocation=''" class="bg-red-700 rounded-lg px-4 py-2 text-sm text-white-400 hover:text-red-400 transition-colors">
             Clear
         </button>
-    </div>
-    <div v-if="showForm" class="bg-gray-900 rounded-xl p-6 mb-8">
-        <h2 class="text-lg font-semibold mb-4">New Application</h2>
-        <div class="flex gap-4 mb-4">
-            <input v-model="form.company" placeholder="Company" class="flex-1 bg-gray-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"/>
-            <input v-model="form.role" placeholder="Role" class="flex-1 bg-gray-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"/>
-            <select v-model="form.status" placeholder="Status" class="flex-1 bg-gray-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Select Status</option>
-                <option>Applied</option>
-                <option>Phone Screen</option>
-                <option>Assessment</option>
-                <option>Interview</option>
-                <option>Technical Interview</option>
-                <option>Offered</option>
-                <option>Rejection</option>
-                <option>Ghosted</option>
-            </select>
-            <div class="flex-1 px-1">
-                <VueDatePicker v-model="form.dateApplied" 
-                dark
-                :enable-time-picker="false"
-                input-class-name="bg-gray-800 rounded-lg px-4 py-2 text-sm w-full"
-                />
-            </div>
-            <input v-model="form.url" placeholder="URL" class="flex-1 bg-gray-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"/>
-            <input v-model="form.location" placeholder="Location" class="flex-1 bg-gray-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"/>
-            <input v-model="form.salary" placeholder="Salary" class="flex-1 bg-gray-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"/>
-            <textarea v-model="form.description" placeholder="Description" class="flex-1 bg-gray-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"/>
-            <textarea v-model="form.notes" placeholder="Notes" class="flex-1 bg-gray-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"/>
-            <button @click="addJob" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors">Add Job</button>
-        </div>
     </div>
     <!-- loop over each job and display its details -->
     <div class="flex flex-col gap-3 w-full">

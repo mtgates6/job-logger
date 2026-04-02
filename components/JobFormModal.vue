@@ -26,6 +26,10 @@ const emit = defineEmits(["update:modelValue", "submit", "close"]);
 function update(field, value) {
   emit("update:modelValue", { ...props.modelValue, [field]: value });
 }
+
+watch(() => props.modelValue.dateApplied, (val) => {
+  console.log("dateApplied in modal:", val, typeof val);
+});
 </script>
 
 <template>
@@ -97,12 +101,12 @@ function update(field, value) {
       <!-- date picker -->
       <div>
         <VueDatePicker
-          :model-value="modelValue.dateApplied ? new Date(`${modelValue.dateApplied}T12:00:00`) : null"
+          :model-value="modelValue.dateApplied instanceof Date ? modelValue.dateApplied : modelValue.dateApplied ? new Date(`${modelValue.dateApplied}T12:00:00`) : null"
           @update:model-value="update('dateApplied', $event)"
           dark
           :enable-time-picker="false"
           input-class-name="bg-gray-800 rounded-lg px-4 py-2 text-sm w-full"
-        />
+        />    
       </div>
 
       <!-- description -->
